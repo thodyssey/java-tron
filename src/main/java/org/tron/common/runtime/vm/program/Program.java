@@ -17,16 +17,38 @@
  */
 package org.tron.common.runtime.vm.program;
 
-import org.apache.commons.collections4.CollectionUtils;
+import static java.lang.StrictMath.min;
+import static java.lang.String.format;
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_BYTE_ARRAY;
+import static org.apache.commons.lang3.ArrayUtils.getLength;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
+import static org.tron.common.runtime.utils.MUtil.convertToTronAddress;
+import static org.tron.common.runtime.utils.MUtil.transfer;
+import static org.tron.common.utils.BIUtil.isPositive;
+import static org.tron.common.utils.BIUtil.toBI;
+
+import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.tron.common.crypto.ECKey;
-import org.tron.common.crypto.Hash;
 import org.tron.common.runtime.config.DefaultConfig;
 import org.tron.common.runtime.config.SystemProperties;
-import org.tron.common.runtime.vm.*;
+import org.tron.common.runtime.vm.DataWord;
+import org.tron.common.runtime.vm.DropCost;
+import org.tron.common.runtime.vm.MessageCall;
+import org.tron.common.runtime.vm.OpCode;
+import org.tron.common.runtime.vm.PrecompiledContracts;
+import org.tron.common.runtime.vm.VM;
 import org.tron.common.runtime.vm.program.invoke.ProgramInvoke;
 import org.tron.common.runtime.vm.program.invoke.ProgramInvokeFactory;
 import org.tron.common.runtime.vm.program.invoke.ProgramInvokeFactoryImpl;
@@ -42,21 +64,7 @@ import org.tron.common.utils.FastByteComparisons;
 import org.tron.common.utils.Sha256Hash;
 import org.tron.common.utils.Utils;
 import org.tron.core.capsule.AccountCapsule;
-import org.tron.core.capsule.BlockCapsule;
-import org.tron.core.exception.HeaderNotFound;
 import org.tron.protos.Protocol;
-
-import java.io.ByteArrayOutputStream;
-import java.math.BigInteger;
-import java.util.*;
-
-import static java.lang.StrictMath.min;
-import static java.lang.String.format;
-import static org.apache.commons.lang3.ArrayUtils.*;
-import static org.tron.common.runtime.utils.MUtil.convertToTronAddress;
-import static org.tron.common.runtime.utils.MUtil.transfer;
-import static org.tron.common.utils.BIUtil.isPositive;
-import static org.tron.common.utils.BIUtil.toBI;
 
 /**
  * @author Roman Mandeleil
@@ -710,15 +718,12 @@ public class Program {
                 new DataWord(this.invoke.getBlockStore().getBlockHashByNumber(index, getPrevHash().getData())).clone() :
                 DataWord.ZERO.clone();
         */
-        if (index < this.getNumber().longValue() && index >= Math.max(256, this.getNumber().longValue()) - 256) {
-
-            List<BlockCapsule> blocks = this.invoke.getBlockStore().getBlockByLatestNum(1);
-            if (CollectionUtils.isNotEmpty(blocks)) {
-                BlockCapsule blockCapsule = blocks.get(0);
-                return new DataWord(blockCapsule.getBlockId().getBytes());
-            } else {
-                return DataWord.ZERO.clone();
-            }
+      if (index < this.getNumber().longValue()
+          && index >= Math.max(256, this.getNumber().intValue()) - 256) {
+        //this.invoke.getBlockStore().getBlockHashByNumber(index, getPrevHash().getData());
+        //return new DataWord().clone()
+        // not support
+        return DataWord.ZERO.clone();
         } else {
             return DataWord.ZERO.clone();
         }

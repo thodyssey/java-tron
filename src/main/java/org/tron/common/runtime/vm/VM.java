@@ -1,5 +1,15 @@
 package org.tron.common.runtime.vm;
 
+import static org.tron.common.crypto.Hash.sha3;
+import static org.tron.common.runtime.utils.MUtil.convertToTronAddress;
+import static org.tron.common.runtime.vm.OpCode.CALL;
+import static org.tron.common.runtime.vm.OpCode.PUSH1;
+import static org.tron.common.runtime.vm.OpCode.REVERT;
+import static org.tron.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -7,14 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.tron.common.runtime.config.SystemProperties;
 import org.tron.common.runtime.vm.program.Program;
 import org.tron.common.runtime.vm.program.Stack;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.tron.common.crypto.Hash.sha3;
-import static org.tron.common.runtime.vm.OpCode.*;
-import static org.tron.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
 
 public class VM {
 
@@ -606,7 +608,7 @@ public class VM {
                     if (logger.isInfoEnabled())
                         hint = "address: " + Hex.toHexString(address.getLast20Bytes());
 
-                    program.stackPush(address);
+                  program.stackPush(address.getLast20Bytes());
                     program.step();
                 }
                 break;
@@ -626,6 +628,7 @@ public class VM {
                 case ORIGIN: {
                     DataWord originAddress = program.getOriginAddress();
 
+                  originAddress = new DataWord((originAddress.getLast20Bytes()));
                     if (logger.isInfoEnabled())
                         hint = "address: " + Hex.toHexString(originAddress.getLast20Bytes());
 
@@ -802,6 +805,7 @@ public class VM {
                 case COINBASE: {
                     DataWord coinbase = program.getCoinbase();
 
+                  coinbase = new DataWord(coinbase.getLast20Bytes());
                     if (logger.isInfoEnabled())
                         hint = "coinbase: " + Hex.toHexString(coinbase.getLast20Bytes());
 
@@ -897,7 +901,7 @@ public class VM {
                     byte[] data = program.memoryChunk(memStart.intValueSafe(), memOffset.intValueSafe());
 
                     LogInfo logInfo =
-                            new LogInfo(address.getLast20Bytes(), topics, data);
+                        new LogInfo(convertToTronAddress(address.getLast20Bytes()), topics, data);
 
                     if (logger.isInfoEnabled())
                         hint = logInfo.toString();
@@ -1171,6 +1175,7 @@ public class VM {
 
                     DataWord address = program.stackPop();
                     program.suicide(address);
+                  // TODO account length
                     program.getResult().addTouchAccount(address.getLast20Bytes());
 
                     if (logger.isInfoEnabled())
