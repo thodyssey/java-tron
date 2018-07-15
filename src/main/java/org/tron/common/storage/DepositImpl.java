@@ -5,11 +5,7 @@ import static org.tron.common.runtime.utils.MUtil.convertToTronAddress;
 import com.google.protobuf.ByteString;
 import java.util.HashMap;
 import org.tron.common.runtime.vm.DataWord;
-import org.tron.core.capsule.AccountCapsule;
-import org.tron.core.capsule.BlockCapsule;
-import org.tron.core.capsule.ContractCapsule;
-import org.tron.core.capsule.StorageCapsule;
-import org.tron.core.capsule.TransactionCapsule;
+import org.tron.core.capsule.*;
 import org.tron.core.db.AccountStore;
 import org.tron.core.db.AssetIssueStore;
 import org.tron.core.db.BlockStore;
@@ -149,11 +145,8 @@ public class DepositImpl implements Deposit{
         } else if (prevDeposit != null) {
             code = prevDeposit.getCode(codeHash);
         } else {
-            if (null == getCodeStore().get(codeHash)) {
-                code = null;
-            } else {
-                code = getCodeStore().get(codeHash).getData();
-            }
+            CodeCapsule codeCapsule =  getCodeStore().get(codeHash);
+            code = codeCapsule != null ? codeCapsule.getData() : null;
         }
 
         if (code != null) {
