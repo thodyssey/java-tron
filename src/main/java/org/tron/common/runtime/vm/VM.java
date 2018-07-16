@@ -1176,7 +1176,8 @@ public class VM {
                     DataWord address = program.stackPop();
                     program.suicide(address);
                   // TODO account length
-                    program.getResult().addTouchAccount(address.getLast20Bytes());
+                    program.getResult()
+                        .addTouchAccount(convertToTronAddress(address.getLast20Bytes()));
 
                     if (logger.isInfoEnabled())
                         hint = "address: " + Hex.toHexString(program.getOwnerAddress().getLast20Bytes());
